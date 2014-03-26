@@ -302,6 +302,7 @@ class Trace(object):
         tracecopy = copy.copy(self)
         tracecopy.drop_growbuffer()
         if data:
+            if self.ydata is None: raise NoData
             tracecopy.ydata = self.ydata.copy()
         tracecopy.meta = copy.deepcopy(self.meta)
         return tracecopy
