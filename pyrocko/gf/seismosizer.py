@@ -1071,6 +1071,16 @@ class SeismosizerTrace(Object):
                            deltat=self.deltat,
                            tmin=self.tmin)
 
+    @classmethod
+    def from_pyrocko_trace(cls, tr, **kwargs):
+        d = dict(data=map(num.float32, tr.get_ydata()),
+                 codes=tr.nslc_id,
+                 deltat=tr.deltat,
+                 tmin=tr.tmin)
+
+        d.update(kwargs)
+        return cls(**d)
+
 
 class Response(Object):
     '''
