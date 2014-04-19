@@ -1073,7 +1073,7 @@ class SeismosizerTrace(Object):
 
     @classmethod
     def from_pyrocko_trace(cls, tr, **kwargs):
-        d = dict(data=map(num.float32, tr.get_ydata()),
+        d = dict(data=tr.get_ydata().astype(num.float32),
                  codes=tr.nslc_id,
                  deltat=tr.deltat,
                  tmin=tr.tmin)
