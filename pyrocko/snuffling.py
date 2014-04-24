@@ -110,6 +110,7 @@ class Snuffling:
         self._live_update = True
         self._previous_output_filename = None
         self._previous_input_filename = None
+        self._previous_input_directory = None
 
         self._tempdir = None
         self._iplot = 0
@@ -797,7 +798,32 @@ class Snuffling:
         self._previous_output_filename = fn
         return str(fn)
 
-    def input_filename(self, caption='Open File', dir='', filter='', selected_filter=None):
+    def input_directory(self, caption='Open Directory', dir='', 
+                                    show_dirs_only=QFileDialog.ShowDirsOnly):
+        
+        '''Query user for an input directory.
+        
+        This is currently just a wrapper to :py:func:`QFileDialog.getOpenFileName`.
+        A :py:exc:`UserCancelled` exception is raised if the user cancels the dialog.
+        '''
+        
+        if not dir and self._previous_input_directory:
+            dir = self._previous_input_directory
+            
+        dir = QFileDialog.getExistingDirectory(
+            self.get_viewer(),
+            caption,
+            dir,
+            show_dirs_only)
+            
+        if not dir:
+            raise UserCancelled()
+        
+        self._previous_input_directory = dir
+        return str(dir)
+
+    def input_filename(self, caption='Open File', dir='', filter='', 
+                                                            selected_filter=None):
         
         '''Query user for an input filename.
         
