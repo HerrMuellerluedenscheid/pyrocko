@@ -31,6 +31,9 @@ def getTextR(node):
     return rc
         
 class EarthquakeCatalog:
+    """
+    Super class to be inherited from by catalog subclasses.
+    """
 
     def get_event(self, name):
         raise Exception('This method should be implemented in derived class.')
@@ -45,6 +48,10 @@ class EarthquakeCatalog:
         return list(self.iter_events(time_range, **kwargs))
 
     def iter_events(self, time_range, **kwargs):
+        """
+        Generator yielding events :py:class:`model.Event` objects of subclassed
+        catalog instance for given *time_range* and *kwargs*. 
+        """
         events = []
         for name in self.iter_event_names(time_range, **kwargs):
             yield self.get_event(name)
@@ -66,16 +73,41 @@ def parse_km(s):
     if m:
         a = float(m.group(1))*1000.
         return a
+
     
 class Geofon(EarthquakeCatalog):
+    """
+    Subclass of :py:class:`EarthquakeCatalog` representing the Geofon catalog, 
+    available at <a href="http://geofon.gfz-potsdam.de">geofon.gfz-potsdam.de</a>
+    
+    """
     
     def __init__(self):
         self.events = {}
 
     def flush(self):
+        """
+        Empty the list of events stored in this instance.
+        """
         self.events = {}
     
-    def iter_event_names(self, time_range=None, nmax=1000, magmin=None, latmin=-90., latmax=90., lonmin=-180., lonmax=180.):
+    def iter_event_names(self, time_range=None, nmax=1000, magmin=None, 
+            latmin=-90., latmax=90., lonmin=-180., lonmax=180.):
+        """
+        Generator yielding event names for given parameter ranges.
+
+        :param time_range: tuple of floats defining time span.
+        :param nmax: limit the number of queries per request to *nmax*
+        :param magmin: neglect events with M_w < *magmin*
+        :param latmin: minimal latitude defining area to be considered
+            (-90<=*latmin*)<=90)
+        :param latmax: maximal latitude defining area to be considered
+            (-90<=*latmax*)<=90)
+        :param lonmin: minimal longitude defining area to be considered
+            (-180<=*lonmin*)<=180)
+        :param lonmax: maximal longitude defining area to be considered
+            (-180<=*lonmax*)<=180)
+        """
         logger.debug('In Geofon.iter_event_names(...)')
 
         dmin = time.strftime('%Y-%m-%d', time.gmtime(time_range[0]))
@@ -117,6 +149,11 @@ class Geofon(EarthquakeCatalog):
             ipage += 1
 
     def get_event(self, name):
+        """
+        Get the event defined by *name*. 
+
+        :rtype: :py:class:`model.Event`
+        """
         logger.debug('In Geofon.get_event("%s")' % name)
 
         if not name in self.events:
@@ -189,7 +226,8 @@ class Geofon(EarthquakeCatalog):
 
             eid = m.group(1)
             vals = [ getTextR(td).encode('ascii') for td in tds ]
-            tevent = calendar.timegm(time.strptime(vals[0][:19], '%Y-%m-%d %H:%M:%S'))
+            tevent = calendar.timegm(time.strptime(vals[0][:19], \
+                    '%Y-%m-%d %H:%M:%S'))
             mag = float(vals[1])
             epicenter = parse_location( vals[2]+' '+vals[3] )
             depth = float(vals[4])*1000.
@@ -215,8 +253,15 @@ class Geofon(EarthquakeCatalog):
         return events
 
     def get_mt(self, ev):
+        """
+        Get moment tensor of the event *ev*
+
+        :param ev: event as :py:class:`model.Event` object.
+        :return: Moment tensor as :py:class:`MomentTensor` object.
+        """
         syear = time.strftime('%Y', time.gmtime(ev.time))
-        url = 'http://geofon.gfz-potsdam.de/data/alerts/%s/%s/mt.txt' % (syear, ev.name)
+        url = 'http://geofon.gfz-potsdam.de/data/alerts/%s/%s/mt.txt' % \
+                (syear, ev.name)
         logger.debug('Opening URL: %s' % url)
         page = urllib2.urlopen(url).read()
         logger.debug('Received page (%i bytes)' % len(page))
@@ -244,7 +289,8 @@ class Geofon(EarthquakeCatalog):
         
         wanted_map = { 
             'region': lambda v: v,
-            'time': lambda v: calendar.timegm(time.strptime(v[:19], '%Y-%m-%d %H:%M:%S')),
+            'time': lambda v: calendar.timegm(time.strptime(v[:19], \
+                    '%Y-%m-%d %H:%M:%S')),
             'magnitude': lambda v: float(v),
             'epicenter': parse_location,
             'depth': parse_km,
@@ -284,12 +330,14 @@ class GlobalCMT(EarthquakeCatalog):
     def flush(self):
         self.events = {}
 
-    def iter_event_names(self, time_range=None, magmin=0., magmax=10., latmin=-90., latmax=90., lonmin=-180., lonmax=180.):
+    def iter_event_names(self, time_range=None, magmin=0., magmax=10., \
+            latmin=-90., latmax=90., lonmin=-180., lonmax=180.):
          
         yearbeg, monbeg, daybeg = time.gmtime(time_range[0])[:3]
         yearend, monend, dayend = time.gmtime(time_range[1])[:3]
         
-        url = 'http://www.globalcmt.org/cgi-bin/globalcmt-cgi-bin/CMT4/form?' + '&'.join( [
+        url = 'http://www.globalcmt.org/cgi-bin/globalcmt-cgi-bin/CMT4/form?' +\
+                '&'.join( [
             'itype=ymd', 'yr=%i' % yearbeg, 'mo=%i' % monbeg, 'day=%i' % daybeg,
             'otype=ymd', 'oyr=%i' % yearend, 'omo=%i' % monend, 'oday=%i' % dayend,
             'jyr=1976', 'jday=1', 'ojyr=1976', 'ojday=1', 'nday=1',
@@ -324,6 +372,11 @@ class GlobalCMT(EarthquakeCatalog):
                 break
 
     def get_event(self, name):
+        """
+        Get the event defined by *name*. 
+
+        :rtype: :py:class:`model.Event`
+        """
         if not name in self.events:
             t = self._name_to_date(name)
             for name2 in self.iter_event_names(time_range=(t-24*60*60, t+2*24*60*60)):
@@ -341,7 +394,8 @@ class GlobalCMT(EarthquakeCatalog):
 
         def complete(data):
             try:
-                t = calendar.timegm((data.year, data.month, data.day, data.hour, data.minute, data.seconds))
+                t = calendar.timegm((data.year, data.month, data.day, \
+                        data.hour, data.minute, data.seconds))
                 m = num.array([data.mrr, data.mrt, data.mrp, 
                                data.mrt, data.mtt, data.mtp,
                                data.mrp, data.mtp, data.mpp],
@@ -397,7 +451,8 @@ class GlobalCMT(EarthquakeCatalog):
 
                     m = re.search(r'Date \(y/m/d\): (\d\d\d\d)/(\d+)/(\d+)', line)
                     if m:
-                        data.year, data.month, data.day = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                        data.year, data.month, data.day = int(m.group(1)), \
+                                int(m.group(2)), int(m.group(3))
             
                     m = re.search(r'Timing and location information', line)
                     if m:
@@ -458,7 +513,23 @@ class USGS(EarthquakeCatalog):
     def flush(self):
         self.events = {}
 
-    def iter_event_names(self, time_range=None, magmin=0., magmax=10., latmin=-90., latmax=90., lonmin=-180., lonmax=180.):
+    def iter_event_names(self, time_range=None, magmin=0., magmax=10., \
+            latmin=-90., latmax=90., lonmin=-180., lonmax=180.):
+        """
+        Generator yielding event names for given parameter ranges.
+
+        :param time_range: tuple of floats defining time span.
+        :param magmin: neglect events with M_w < *magmin*
+        :param magmax: neglect events with M_w > *magmax*
+        :param latmin: minimal latitude defining area to be considered
+            (-90<=*latmin*)<=90)
+        :param latmax: maximal latitude defining area to be considered
+            (-90<=*latmax*)<=90)
+        :param lonmin: minimal longitude defining area to be considered
+            (-180<=*lonmin*)<=180)
+        :param lonmax: maximal longitude defining area to be considered
+            (-180<=*lonmax*)<=180)
+        """
 
         yearbeg, monbeg, daybeg = time.gmtime(time_range[0])[:3]
         yearend, monend, dayend = time.gmtime(time_range[1])[:3]
@@ -563,6 +634,7 @@ class NotFound(Exception):
 def ws_request(url, post=False, **kwargs):
     url_values = urllib.urlencode(kwargs)
     url = url + '?' + url_values
+
     logger.debug('Accessing URL %s' % url)
 
     req = urllib2.Request(url)
@@ -581,6 +653,11 @@ def ws_request(url, post=False, **kwargs):
             raise e 
 
 class Kinherd(EarthquakeCatalog):
+    """
+    Subclass of :py:class:`EarthquakeCatalog` representing the Kinherd catalog, 
+    available at <a href="http://kinherd.org/quakes/KPS">kinherd.org/quakes/KPS</a>
+    
+    """
 
     def __init__(self):
        self.events = {}
@@ -634,7 +711,23 @@ class Kinherd(EarthquakeCatalog):
 
     
     def iter_event_names(self, time_range=None, **kwargs):
+        """
+        Generator yielding names of events of given *time_range*.
 
+        :param time_range: tuple of floats defining time span of query.
+        
+        *kwargs*:
+        :param magmin: neglect events with M_w < *magmin*
+        :param magmax: neglect events with M_w > *magmax*
+        :param latmin: minimal latitude defining area to be considered
+            (-90<=*latmin*)<=90)
+        :param latmax: maximal latitude defining area to be considered
+            (-90<=*latmax*)<=90)
+        :param lonmin: minimal longitude defining area to be considered
+            (-180<=*latmax*)<=180)
+        :param latmax: maximal longitude defining area to be considered
+            (-180<=*latmax*)<=180)
+        """
         qkwargs = {}
         for k in 'magmin magmax latmin latmax lonmin lonmax'.split():
             if k in kwargs and kwargs[k] is not None:
@@ -652,6 +745,11 @@ class Kinherd(EarthquakeCatalog):
 
 
     def get_event(self, name):
+        """
+        Get the event defined by *name*. 
+
+        :rtype: :py:class:`model.Event`
+        """
         if name not in self.events:
             self.retrieve(name=name)
 
