@@ -2113,8 +2113,8 @@ class AnalogFilterResponse(FrequencyResponse):
     
     (see :py:func:`scipy.signal.freqs`).'''
 
-    b = List.T(Float.T())
-    a = List.T(Float.T())
+    b = List.T(Complex.T())
+    a = List.T(Complex.T())
 
     def __init__(self, b, a):
         FrequencyResponse.__init__(self, b=b, a=a)
