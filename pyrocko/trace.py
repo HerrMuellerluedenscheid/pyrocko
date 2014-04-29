@@ -977,6 +977,7 @@ class Trace(object):
             else:
                 if tr.tmin/tr.deltat>1e-6 or tr.tmax/tr.deltat>1e-6:
                     tr = tr.copy()
+                    tr.deltat = deltat
                     tr.snap()
             return tr
 
@@ -1024,10 +1025,11 @@ class Trace(object):
                 return tr
 
         def check_alignment(t1, t2):
-            if abs(t1.tmin-t2.tmin) > t1.deltat * 1e-4 or \
-                    abs(t1.tmax - t2.tmax) > t1.deltat * 1e-4 or \
+            if abs(t1.tmin-t2.tmin) > t1.deltat*1e-4 or \
+                    abs(t1.tmax-t2.tmax) > t1.deltat*1e-4 or \
                     t1.ydata.shape != t2.ydata.shape:
-                        raise MisalignedTraces('Cannot calculate misfit of %s and %s due to misaligned traces.' %\
+                        raise MisalignedTraces('Cannot calculate misfit of\
+                                %s and %s due to misaligned traces.' %\
                                 ('.'.join(t1.nslc_id), '.'.join(t2.nslc_id)))
 
         def init_chain(tr):
@@ -1058,7 +1060,9 @@ class Trace(object):
                     init_chain(candidate)
                 
                 if (candidate.tmax<self.tmin or candidate.tmin>self.tmax):
-                        logger.warn('Cannot calculate misfit: %s and %s have no overlapping data.'%('.'.join(self.nslc_id), '.'.join(candidate.nslc_id)))
+                        logger.warn('Cannot calculate misfit: %s and %s have \
+                                no overlapping data.'%('.'.join(self.nslc_id),\
+                                    '.'.join(candidate.nslc_id)))
                         yield None, None, None, None
                         break
 
@@ -1068,8 +1072,8 @@ class Trace(object):
                 else:
                     wanted_deltat = max(candidate.deltat, self.deltat)
 
-                wanted_tmin = min(candidate.tmin, self.tmin) - wanted_deltat
-                wanted_tmax = max(candidate.tmax, self.tmax) + wanted_deltat
+                wanted_tmin = min(candidate.tmin, self.tmin) - wanted_deltat*1.5
+                wanted_tmax = max(candidate.tmax, self.tmax) + wanted_deltat*1.5
 
                 if setup.domain=='frequency_domain':
                     cand, cand_f, cand_data = candidate._pchain((candidate, 
