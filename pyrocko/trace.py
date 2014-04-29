@@ -1062,11 +1062,14 @@ class Trace(object):
                         yield None, None, None, None
                         break
 
-                wanted_deltat = max(candidate.deltat, self.deltat)
-                wanted_tmin = min(candidate.tmin, self.tmin) -\
-                                              max(candidate.deltat, self.deltat)
-                wanted_tmax = max(candidate.tmax, self.tmax) +\
-                                              max(candidate.deltat, self.deltat)
+                if abs(candidate.deltat-self.deltat)<1e-6:
+                    wanted_deltat = round(num.mean([candidate.deltat, \
+                            self.deltat]), 6)
+                else:
+                    wanted_deltat = max(candidate.deltat, self.deltat)
+
+                wanted_tmin = min(candidate.tmin, self.tmin) - wanted_deltat
+                wanted_tmax = max(candidate.tmax, self.tmax) + wanted_deltat
 
                 if setup.domain=='frequency_domain':
                     cand, cand_f, cand_data = candidate._pchain((candidate, 
