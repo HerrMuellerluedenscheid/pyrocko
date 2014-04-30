@@ -960,6 +960,27 @@ class Target(meta.Receiver):
     def get_factor(self):
         return 1.0
 
+    @classmethod
+    def from_pyrocko_station(cls, station, **kwargs):
+        """
+        Initialize a :py:class:`Target` from a :py:class:`model.Station`
+        instance.
+
+        :returns: list of :py:class:`Target`s
+        """
+        ds = []
+        for channel in station.get_channels():
+            d = dict(lat=station.lat,
+                     lon=station.lon,
+                     depth=station.depth,
+                     elevation=station.elevation,
+                     dip=channel.dip,
+                     azimuth=channel.azimuth,
+                     codes = (station.nsl(), channel.name))
+            d.update(kwargs)
+            ds.append(d)
+        return [cls(**d) for d in ds]
+
 
 class Reduction(StringChoice):
     choices = ['sum', 'minimum', 'maximum', 'mean', 'variance']
