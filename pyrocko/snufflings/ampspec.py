@@ -34,9 +34,10 @@ class Save(Snuffling):
             mi, ma = meanabsa - 3*stdabsa, meanabsa + 3*stdabsa
             extrema.append(mi)
             extrema.append(ma)
-            p.plot(f,num.abs(a))
+            p.plot(f,absa, label=tr.nslc_id)
 
         mi, ma = min(extrema), max(extrema)
+        p.legend(fontsize=8)
 
         p.set_xscale('log')
         p.set_yscale('log')
