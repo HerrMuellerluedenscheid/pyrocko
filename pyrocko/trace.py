@@ -1040,7 +1040,12 @@ class Trace(object):
         adata, aproc = a.run_chain(tmin, tmax, deltat, setup, nocache)
         bdata, bproc = b.run_chain(tmin, tmax, deltat, setup, nocache)
 
-        m, n = Lx_norm(adata, bdata, norm=setup.norm)
+        try:
+            m, n = Lx_norm(adata, bdata, norm=setup.norm)
+        except ValueError:
+            adata, aproc, bdata, bproc = samples_check(adata, aproc, bdata, bproc)
+            m, n = Lx_norm(adata, bdata, norm=setup.norm)
+
 
         if debug:
             return m, n, aproc, bproc
@@ -2606,4 +2611,34 @@ def check_alignment(t1, t2):
             t1.ydata.shape != t2.ydata.shape:
                 raise MisalignedTraces('Cannot calculate misfit of %s and %s due to misaligned traces.' %\
                         ('.'.join(t1.nslc_id), '.'.join(t2.nslc_id)))
+
+def samples_check(adata, aproc, bdata, bproc):
+    """
+    Repeat first/last sample of ydata if one sample is missing at beginning/end.
+    """
+    tmin_add = round((aproc.tmin-bproc.tmin)/aproc.deltat)
+    tmax_add = round((aproc.tmax-bproc.tmax)/aproc.deltat)
+    assert (False in [tmin_add, tmax_add])
+
+    data = min([adata, bdata], key=len)
+    dlen = len(data)
+    new_data = num.zeros(len(data)+1, dtype=data.dtype)
+
+    if tmin_add!=0:
+        new_data[:dlen] = data
+        #new_data[dlen] = new_data[dlen-1]
+        if tmin_add==-1:
+            bdata = new_data
+        else:
+            adata = new_data
+    elif tmax_add!=0:
+        new_data[1:dlen+1] = data
+        #new_data[0] = 0
+        if tmax_add==-1:
+            adata = new_data
+        else:
+            bdata = new_data
+    #TODO: apply changes to traces
+
+    return adata, aproc, bdata, bproc
 
