@@ -2,6 +2,7 @@ import Queue
 import itertools
 import multiprocessing
 import traceback
+import os
 
 
 def worker(q_in, q_out, function, eprintignore):
@@ -21,10 +22,15 @@ def worker(q_in, q_out, function, eprintignore):
 
 
 def parimap(function, *iterables, **kwargs):
-    assert all(k in ('nprocs', 'eprintignore') for k in kwargs.keys())
+    assert all(k in ('nprocs', 'eprintignore', 'nice') for k in kwargs.keys())
 
     nprocs = kwargs.get('nprocs', None)
     eprintignore = kwargs.get('eprintignore', 'all')
+    nice = kwargs.get('nice', None)
+
+    if nice:
+        niceness = os.nice(0)
+        os.nice(nice-niceness)
 
     if eprintignore == 'all':
         eprintignore = None

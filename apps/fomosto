@@ -212,6 +212,9 @@ def command_build(args):
         parser.add_option('--force', dest='force', action='store_true',
                 help='overwrite existing files')
 
+        parser.add_option('--nice', dest='nice', type='int',
+                help='run processes with niceness <nice>')
+
         parser.add_option('--nworkers', dest='nworkers', type='int', metavar='N',
                 help='run N worker processes in parallel')
 
@@ -244,7 +247,8 @@ def command_build(args):
                 force=options.force, 
                 nworkers=options.nworkers, continue_=options.continue_,
                 step=step,
-                iblock=iblock)
+                iblock=iblock,
+                nice=options.nice)
 
     except gf.StoreError, e:
         die(e)

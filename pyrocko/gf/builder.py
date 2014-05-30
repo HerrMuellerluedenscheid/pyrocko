@@ -76,7 +76,7 @@ class Builder:
     
     @classmethod
     def build(cls, store_dir, force=False, nworkers=None, continue_=False, 
-              step=None, iblock=None):
+              step=None, iblock=None, nice=None):
 
         if step is None:
             steps = range(cls.nsteps)
@@ -143,7 +143,7 @@ class Builder:
                         cls.__work_block,
                         [(store_dir, step, i, shared)
                          for i in iblocks],
-                        nprocs=nworkers, eprintignore=Interrupted):
+                        nprocs=nworkers, eprintignore=Interrupted, nice=nice):
 
                     store_dir, step, i = x
                     with open(status_fn, 'a') as status:

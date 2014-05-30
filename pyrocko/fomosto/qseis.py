@@ -901,6 +901,7 @@ def init(store_dir):
     config.validate()
     return gf.store.Store.create_editables(store_dir, config=config, extra={'qseis': qseis})
 
-def build(store_dir, force=False, nworkers=None, continue_=False, step=None, iblock=None):
+def build(store_dir, force=False, nworkers=None, continue_=False, step=None,
+        iblock=None, nice=None):
     return QSeisGFBuilder.build(store_dir, force=force, nworkers=nworkers,
-            continue_=continue_, step=step, iblock=iblock)
+            continue_=continue_, step=step, iblock=iblock, nice=nice)
