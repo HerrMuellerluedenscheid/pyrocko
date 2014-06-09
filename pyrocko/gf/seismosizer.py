@@ -969,16 +969,28 @@ class Target(meta.Receiver):
         :returns: list of :py:class:`Target`s
         """
         ds = []
-        for channel in station.get_channels():
-            d = dict(lat=station.lat,
-                     lon=station.lon,
-                     depth=station.depth,
-                     elevation=station.elevation,
-                     dip=channel.dip,
-                     azimuth=channel.azimuth,
-                     codes = (station.nsl(), channel.name))
-            d.update(kwargs)
-            ds.append(d)
+        if station.channels:
+            for channel in station.get_channels():
+                d = dict(lat=station.lat,
+                         lon=station.lon,
+                         depth=station.depth,
+                         elevation=station.elevation,
+                         dip=channel.dip,
+                         azimuth=channel.azimuth,
+                         codes = (station.nsl(), channel.name))
+                d.update(kwargs)
+                ds.append(d)
+        else:
+            for c in ['E', 'N', 'Z']:
+                d = dict(lat=station.lat,
+                         lon=station.lon,
+                         depth=station.depth,
+                         elevation=station.elevation,
+                         codes = (station.nsl()+tuple(c)))
+
+                d.update(kwargs)
+                ds.append(d)
+                print d['codes']
         return [cls(**d) for d in ds]
 
 
