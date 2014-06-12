@@ -1041,10 +1041,10 @@ class Trace(object):
         bdata, bproc = b.run_chain(tmin, tmax, deltat, setup, nocache)
 
         try:
-            m, n = Lx_norm(adata, bdata, norm=setup.norm)
+            m, n = Lx_norm(bdata, adata, norm=setup.norm)
         except ValueError:
             adata, aproc, bdata, bproc = samples_check(adata, aproc, bdata, bproc)
-            m, n = Lx_norm(adata, bdata, norm=setup.norm)
+            m, n = Lx_norm(bdata, adata, norm=setup.norm)
 
         if debug:
             return m, n, aproc, bproc
