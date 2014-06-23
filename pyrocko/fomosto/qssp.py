@@ -675,6 +675,6 @@ def init(store_dir):
     return gf.store.Store.create_editables(store_dir, config=config, extra={'qssp': qssp})
 
 def build(store_dir, force=False, nworkers=None, continue_=False, step=None,
-        iblock=None, nice):
+        iblock=None, nice=None):
     return QSSPGFBuilder.build(store_dir, force=force, nworkers=nworkers,
             continue_=continue_, step=step, iblock=iblock, nice=nice)
