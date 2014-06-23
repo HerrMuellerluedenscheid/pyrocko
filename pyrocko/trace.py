@@ -978,7 +978,8 @@ class Trace(object):
             do_pre_taper,
             do_fft,
             do_filter,
-            do_ifft)
+            do_ifft,
+            do_pre_taper)
 
     def run_chain(self, tmin, tmax, deltat, setup, nocache):
         if setup.domain=='frequency_domain':
@@ -1000,6 +1001,7 @@ class Trace(object):
                 (setup.filter,),
                 (setup.filter,),
                 (),
+                (setup.taper,),
                 nocache=nocache)
 
             if setup.domain=='time_domain':
@@ -2646,6 +2648,10 @@ def samples_check(adata, aproc, bdata, bproc):
         else:
             bdata = new_data
     #TODO: apply changes to traces
+    aproc = aproc.copy(data=False)
+    bproc = bproc.copy(data=False)
+    aproc.ydata = adata
+    bproc.ydata = bdata
 
     return adata, aproc, bdata, bproc
 
