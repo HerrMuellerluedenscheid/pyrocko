@@ -2031,8 +2031,9 @@ class BeachBall:
         self._update_attributes(kwargs)
 
         self._setup_BB()
-
-        self._plot_US()
+        f = self._plot_US()
+        if self._return_fig:
+            return f
  
     #-------------------------------------------------------------------
     #-------------------------------------------------------------------
@@ -2133,8 +2134,8 @@ class BeachBall:
 
 
         import pylab as P
-        #        import os.path as op
-        #        import os
+        import os.path as op
+        import os
         
         plotfig = self._setup_plot_US(P)
 
@@ -2683,6 +2684,8 @@ class BeachBall:
         self._plot_save_plot         = False
         self._plot_outfile           = './BB_plot_example'
         self._plot_outfile_format    = 'svg'
+
+        self._return_fig = False
     
     #---------------------------------------------------------------
 
@@ -3962,7 +3965,10 @@ class BeachBall:
             except:
                 print 'saving of plot not possible'
 
-        P.show()
+        if self._return_fig:
+            return plotfig
+        else:
+            P.show()
         
         P.close('all')
         del P

@@ -798,8 +798,7 @@ class Snuffling:
         self._previous_output_filename = fn
         return str(fn)
 
-    def input_directory(self, caption='Open Directory', dir='', 
-                                    show_dirs_only=QFileDialog.ShowDirsOnly):
+    def input_directory(self, caption='Open Directory', dir=''):
         
         '''Query user for an input directory.
         
@@ -810,11 +809,11 @@ class Snuffling:
         if not dir and self._previous_input_directory:
             dir = self._previous_input_directory
             
-        dir = QFileDialog.getExistingDirectory(
+        dir = str(QFileDialog.getExistingDirectory(
             self.get_viewer(),
             caption,
             dir,
-            show_dirs_only)
+            QFileDialog.ShowDirsOnly))
             
         if not dir:
             raise UserCancelled()
