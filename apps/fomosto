@@ -3,7 +3,7 @@
 import sys, re, os, logging, copy
 from optparse import OptionParser
 
-from pyrocko import util, trace, gf, cake, io
+from pyrocko import util, trace, gf, cake, io, gui_util
 
 pjoin = os.path.join
 
@@ -375,8 +375,15 @@ def command_redeploy(args):
 
 def command_view(args):
     def setup(parser):
-        parser.add_option('--extract', dest='extract', metavar='start:stop[:step|@num],...',
-                help='specify which traces to show')
+        parser.add_option('--extract', 
+                          dest='extract', 
+                          metavar='start:stop[:step|@num],...',
+                          help='specify which traces to show')
+
+        parser.add_option('--show-phases', 
+                          dest='showphases',
+                          action='store_true',
+                          help='add phase markers from ttt')
 
     parser, options, args = cl_parse('view', args, setup=setup)
     
@@ -389,6 +396,9 @@ def command_view(args):
 
     store_dirs = get_store_dirs(args)
 
+    if options.showphases:
+        markers = []
+
     alpha = 'abcdefghijklmnopqrstxyz'.upper()
 
     traces = []
@@ -396,6 +406,7 @@ def command_view(args):
     try:
         for istore, store_dir in enumerate(store_dirs):
             store = gf.Store(store_dir)
+            phasenames = [pn.id for pn in store.config.tabulated_phases]
             ii = 0
             for args in store.config.iter_extraction(gdef):
                 gtr = store.get(args)
@@ -407,6 +418,7 @@ def command_view(args):
                 if gtr:
                     
                     sta_code = '%04i (%s)' % (ii, ','.join('%gk' % (x/1000.) for x in args[:-1]))
+                    tmin = gtr.deltat * gtr.itmin
 
                     tr = trace.Trace(
                             '',
@@ -415,7 +427,19 @@ def command_view(args):
                             '%02i' % args[-1],
                             ydata = gtr.data,
                             deltat = gtr.deltat,
-                            tmin = gtr.deltat * gtr.itmin)
+                            tmin = tmin)
+                    
+                    if options.showphases:
+                        for phasename in phasenames:
+                            phase_tmin = store.t(phasename, args[:-1])
+                            if phase_tmin:
+                                m = gui_util.PhaseMarker((('',sta_code, loc_code, '%02i' %
+                                                          args[-1]),),
+                                                        phase_tmin,
+                                                        phase_tmin, 
+                                                        0,
+                                                        phasename=phasename)
+                                markers.append(m)
 
                     traces.append(tr)
 
@@ -424,7 +448,7 @@ def command_view(args):
     except (gf.meta.GridSpecError, gf.StoreError, gf.meta.OutOfBounds), e:
         die(e)
 
-    trace.snuffle(traces)
+    trace.snuffle(traces, markers=markers)
 
 def command_extract(args):
     def setup(parser):
