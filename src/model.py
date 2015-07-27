@@ -300,7 +300,11 @@ class Event(Object):
 
     def get_hash(self):
         e = self
-        return util.base36encode(abs(hash((util.time_to_str(e.time), str(e.lat), str(e.lon), str(e.depth), str(e.magnitude), e.catalog, e.name, e.region)))).lower()
+        d = float(e.depth) if e.depth else None
+        m = float(e.magnitude) if e.magnitude else None
+        return util.base36encode(abs(hash((
+            util.time_to_str(e.time), str(float(e.lat)), str(float(e.lon)),
+            str(d), str(m), e.catalog, e.name, e.region)))).lower()
 
     def human_str(self):
         s = [
