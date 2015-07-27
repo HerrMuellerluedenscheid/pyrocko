@@ -18,6 +18,26 @@ def near(a,b,eps):
 
 class ModelTestCase(unittest.TestCase):
     
+    def testIOCatalog(self):
+        tempdir = tempfile.mkdtemp()
+        fn = pjoin(tempdir, 'event.txt')
+        e1 = model.Event(
+            10.,20.,1234567890., depth=123, name='11111',
+            catalog='Quelle')
+        model.dump_events([e1], fn)
+        e2 = model.load_events(fn)[0]
+        assert e1.region == e2.region
+        assert e1.name == e2.name
+        assert e1.lat == e2.lat
+        assert e1.lon == e2.lon
+        assert e1.depth == e2.depth
+        assert e1.time == e2.time
+        assert e1.region == e2.region
+        assert e1.magnitude == e2.magnitude
+        assert e1.magnitude_type == e2.magnitude_type
+        assert e1.get_hash() == e2.get_hash()
+        shutil.rmtree(tempdir)
+
     def testIOEventOld(self):
         tempdir = tempfile.mkdtemp()
         fn = pjoin(tempdir, 'event.txt')
@@ -28,12 +48,14 @@ class ModelTestCase(unittest.TestCase):
         e2 = model.Event(load=fn)
         assert e1.region == e2.region
         assert e1.name == e2.name
+        assert e1.depth == e2.depth
         assert e1.lat == e2.lat
         assert e1.lon == e2.lon
         assert e1.time == e2.time
         assert e1.region == e2.region
         assert e1.magnitude == e2.magnitude
         assert e1.magnitude_type == e2.magnitude_type
+        assert e1.get_hash() == e2.get_hash()
         shutil.rmtree(tempdir)
 
     def testIOEvent(self):
@@ -47,12 +69,14 @@ class ModelTestCase(unittest.TestCase):
         e2 = guts.load(filename=fn)
         assert e1.region == e2.region
         assert e1.name == e2.name
+        assert e1.depth == e2.depth
         assert e1.lat == e2.lat
         assert e1.lon == e2.lon
         assert e1.time == e2.time
         assert e1.region == e2.region
         assert e1.magnitude == e2.magnitude
         assert e1.magnitude_type == e2.magnitude_type
+        assert e1.get_hash() == e2.get_hash()
         shutil.rmtree(tempdir)
     
     def testMissingComponents(self):
