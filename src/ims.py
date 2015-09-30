@@ -2249,7 +2249,7 @@ class MessageHeader(Section):
 
     def write(self, writer):
         Begin(version=self.version).write(writer)
-        MsgType(type=self.type).write(writer)
+        MsgType(type=self.type.upper()).write(writer)
         if self.msg_id is not None:
             self.msg_id.write(writer)
         if self.ref_id is not None:
