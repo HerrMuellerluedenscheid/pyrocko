@@ -144,7 +144,16 @@ def get_err_palette():
     err_palette.setColor( QPalette.Base, QColor(255,200,200) )
     return err_palette
 
+def get_disabled_palette():
+    err_palette = QPalette()
+    err_palette.setColor( QPalette.Base, QColor(180,180,180) )
+    return err_palette
+
 class MySlider(QSlider):
+
+    def __init__(self, *args, **kwargs):
+        QSlider.__init__(self, *args, **kwargs)
+
     
     def wheelEvent(self, ev):
         ev.ignore()
@@ -174,7 +183,15 @@ class MyValueEdit(QLineEdit):
             self.value = value
             self.setPalette( QApplication.palette() )
             self.adjust_text()
-        
+
+    def set_enable(self, enable):
+        if enable:
+            self.setValue(self.value)
+            self.setPalette(QApplication.palette())
+        else:
+            self.setText('off')
+            self.setPalette(get_disabled_palette())
+
     def myEditingFinished(self):
         try:
             t = str(self.text()).strip()
@@ -250,6 +267,14 @@ class ValControl(QObject):
 
     def widgets(self):
         return self.lname, self.lvalue, self.slider
+
+    def set_enable(self, enable):
+        self.lvalue.set_enable(enable)
+        self.slider.setEnabled(enable)
+        if enable:
+            self.slider.setPalette(QApplication.palette())
+        else:
+            self.slider.setPalette(get_disabled_palette())
     
     def s2v(self, svalue):
         a = math.log(self.ma/self.mi) / 10000.
