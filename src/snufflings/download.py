@@ -1,3 +1,4 @@
+from PyQt4.QtCore import SIGNAL
 from pyrocko import pile, trace, util, io, iris_ws, model
 from pyrocko.fdsn import ws as fdsn_ws
 from pyrocko.gui_util import EventMarker
@@ -10,25 +11,53 @@ logger = logging.getLogger('pyrocko.snufflings.iris_data')
 logger.setLevel(logging.INFO)
 
 class Download(Snuffling):
+    '''
+    <html>
+    <head>
+    <style type="text/css">
+        body { margin-left:10px };
+    </style>
+    </head>
+    <body>
+    <h1 align="center">Query Catalogs for Waveform Data</h1>
+    <p>
+    By default <b>Use coordinates of selected event as origin</b> is activated.
+    If you would like to modify the center of the area to be queried using the
+    <b>Origin latitude</b> and <b>Origin langitude</b> sliders, this switch
+    needs to be turned off.
+    </body>
+    '''
+    def setup(self):
 
-    def setup(self):    
-        '''Customization of the snuffling.'''
-        
         self.set_name('Download Waveforms')
         self.add_parameter(Param('Min Radius [deg]', 'minradius', 0., 0., 20.))
         self.add_parameter(Param('Max Radius [deg]', 'maxradius', 5., 0., 20.))
         self.add_parameter(Param('Origin latitude [deg]', 'lat', 0, -90., 90.))
         self.add_parameter(Param('Origin longitude [deg]', 'lon', 0., -180., 180.))
-        self.add_parameter(Switch('Use coordinates of selected event as origin', 'useevent', False))
+        self.add_parameter(
+            Switch('Use coordinates of selected event as origin', 'useevent', True))
         self.add_parameter(Choice('Datecenter', 'datacenter', 'GEOFON', ['GEOFON', 'IRIS']))
         self.add_parameter(Choice('Channels', 'channel_pattern', 'BH?', ['BH?', 'BHZ', 'HH?', '?H?', '*', '??Z']))
         self.add_trigger('Save', self.save)
         self.set_live_update(False)
         self.current_stuff = None
 
+    def panel_visibility_changed(self, bool):
+        if bool:
+            self._param_controls['lat'].set_enable(not self.useevent)
+            self._param_controls['lon'].set_enable(not self.useevent)
+            viewer = self.get_viewer()
+            viewer.connect(self._param_controls['useevent'],
+                           SIGNAL('sw_toggled(PyQt_PyObject, bool)'),
+                           self.toggle_origin_sliders)
+
+    def toggle_origin_sliders(self, control, activated):
+        self._param_controls['lat'].set_enable(not activated)
+        self._param_controls['lon'].set_enable(not activated)
+
     def call(self):
         '''Main work routine of the snuffling.'''
-        
+
         self.cleanup()
 
         view = self.get_viewer()
@@ -44,7 +73,6 @@ class Download(Snuffling):
                 self.fail('An event marker must be selected.')
 
             ev = marker.get_event()
-            
             lat, lon = ev.lat, ev.lon
         else:
             lat, lon = self.lat, self.lon
@@ -65,7 +93,7 @@ class Download(Snuffling):
 
         stations = sx.get_pyrocko_stations()
         networks = set( [ s.network for s in stations ] )
-        
+
         t2s = util.time_to_str
         dir = self.tempdir()
         fns = []
