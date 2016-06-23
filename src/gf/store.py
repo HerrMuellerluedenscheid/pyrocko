@@ -694,7 +694,7 @@ class BaseStore:
         return GFTrace(sum_arr, itmin, deltat)
 
     def _optimize(self, irecords, delays, weights):
-        if irecords.size < 2:
+        if num.unique(irecords).size == irecords.size:
             return irecords, delays, weights
 
         deltat = self._deltat
@@ -759,11 +759,14 @@ class BaseStore:
                 itmin -= itoffset
 
             try:
+                t0 = time.time()
                 tr = GFTrace(*store_ext.store_sum(
                     self.cstore, irecords.astype(num.uint64),
                     (delays - itoffset*self._deltat).astype(num.float32),
                     weights.astype(num.float32),
                     int(itmin), int(nsamples)))
+
+                t1 = time.time()
                 tr.itmin += itoffset
                 return tr
 
@@ -1073,7 +1076,7 @@ class Store(BaseStore):
         store, decimate = self._decimated_store(decimate)
         if interpolation == 'nearest_neighbor':
             irecord = store.config.irecord(*args)
-            return store._get(irecord, itmin, nsamples, decimate,
+            tr = store._get(irecord, itmin, nsamples, decimate,
                               implementation)
 
         elif interpolation in ('multilinear', 'off'):
@@ -1081,9 +1084,15 @@ class Store(BaseStore):
             if interpolation == 'off' and len(irecords) != 1:
                 raise NotAllowedToInterpolate()
 
-            return store._sum(irecords, num.zeros(len(irecords)), weights,
+            tr = store._sum(irecords, num.zeros(len(irecords)), weights,
                               itmin, nsamples, decimate, implementation,
                               'disable')
+
+        # to prevent problems with rounding errors (BaseStore saves deltat
+        # as a 4-byte floating point value, value from YAML config is more
+        # accurate)
+        tr.deltat = self.config.deltat * decimate
+        return tr
 
     def sum(self, args, delays, weights, itmin=None, nsamples=None,
             decimate=1, interpolation='nearest_neighbor', implementation='c',
@@ -1111,8 +1120,15 @@ class Store(BaseStore):
             weights = num.repeat(weights, neach) * ip_weights
             delays = num.repeat(delays, neach)
 
-        return store._sum(irecords, delays, weights, itmin, nsamples, decimate,
+        tr = store._sum(irecords, delays, weights, itmin, nsamples, decimate,
                           implementation, optimization)
+
+        # to prevent problems with rounding errors (BaseStore saves deltat
+        # as a 4-byte floating point value, value from YAML config is more
+        # accurate)
+        tr.deltat = self.config.deltat * decimate
+        return tr
+
 
     def make_decimated(self, decimate, config=None, force=False,
                        show_progress=False):
@@ -1423,6 +1439,8 @@ class Store(BaseStore):
                    interpolation='nearest_neighbor', optimization='enable'):
 
         out = {}
+
+        dts = 0.
         for (component, args, delays, weights) in \
                 self.config.make_sum_params(source, receiver):
 
@@ -1430,9 +1448,11 @@ class Store(BaseStore):
                 gtr = self.sum(args, delays, weights,
                                interpolation=interpolation,
                                optimization=optimization)
+
                 out[component] = gtr
 
         return out
+
 
 __all__ = '''
 gf_dtype

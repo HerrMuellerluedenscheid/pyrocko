@@ -144,16 +144,16 @@ class Event(Object):
         file.write('name = %s\n' % self.name)
         file.write('time = %s\n' % util.time_to_str(self.time))
         if self.lat is not None:
-            file.write('latitude = %g\n' % self.lat)
+            file.write('latitude = %.12g\n' % self.lat)
         if self.lon is not None:
-            file.write('longitude = %g\n' % self.lon)
+            file.write('longitude = %.12g\n' % self.lon)
         if self.magnitude is not None:
             file.write('magnitude = %g\n' % self.magnitude)
             file.write('moment = %g\n' % moment_tensor.magnitude_to_moment(self.magnitude))
         if self.magnitude_type is not None:
             file.write('magnitude_type = %s\n' % self.magnitude_type)
         if self.depth is not None:
-            file.write('depth = %g\n' % self.depth)
+            file.write('depth = %.10g\n' % self.depth)
         if self.region is not None:
             file.write('region = %s\n' % self.region)
         if self.catalog is not None:
@@ -201,19 +201,23 @@ class Event(Object):
         return groups
 
     @staticmethod
-    def dump_catalog(events, filename):
-        file = open(filename, 'w')
+    def dump_catalog(events, filename=None, stream=None):
+        if filename is not None:
+            file = open(filename, 'w')
+        else:
+            file = stream
         try:
             i = 0
             for ev in events:
-                if i != 0:
-                    file.write('--------------------------------------------\n')
 
                 ev.olddumpf(file)
+
+                file.write('--------------------------------------------\n')
                 i += 1
 
         finally: 
-            file.close()
+            if filename is not None:
+                file.close()
     
     @staticmethod
     def oldload(filename):
@@ -341,13 +345,13 @@ def load_one_event(filename):
     l = Event.load_catalog(filename)
     return l.next()
 
-def dump_events(events, filename):
+def dump_events(events, filename=None, stream=None):
     '''Write events file.
 
     :param events: list of :py:class:`Event` objects
     :param filename: name of file as str
     '''
-    Event.dump_catalog(events, filename)
+    Event.dump_catalog(events, filename=filename, stream=stream)
 
 
 class Channel(Object):
