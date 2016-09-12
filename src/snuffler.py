@@ -349,7 +349,8 @@ class SnufflerTabs(QTabWidget):
 class SnufflerWindow(QMainWindow):
 
     def __init__(self, pile, stations=None, events=None, markers=None, 
-                        ntracks=12, follow=None, controls=True, opengl=False):
+                        ntracks=12, follow=None, controls=True, opengl=False,
+                        snufflings=None):
         
         QMainWindow.__init__(self)
 
@@ -383,6 +384,11 @@ class SnufflerWindow(QMainWindow):
         self.add_tab('Main', self.pile_viewer)
 
         self.pile_viewer.setup_snufflings()
+
+        if snufflings:
+            for s in snufflings:
+                s.setup()
+                self.pile_viewer.viewer.add_snuffling(s)
 
         self.main_controls = self.pile_viewer.controls()
         self.add_panel('Main Controls', self.main_controls, visible=controls)
@@ -599,6 +605,7 @@ def snuffle(pile=None, **kwargs):
     :param store_interval: float, time interval (in seconds) between stream buffer dumps 
     :param want_markers: bool, whether markers should be returned
     :param launch_hook: callback function called before snuffler window is shown
+    :param snufflings: :py:class:`pyrocko.snuffling.Snuffling` instances to load
     '''
     
     if pile is None:
