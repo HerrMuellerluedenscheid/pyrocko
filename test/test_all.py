@@ -20,11 +20,15 @@ from test_guts import GutsTestCase  # noqa
 from test_parstack import ParstackTestCase  # noqa
 from test_geonames import GeonamesTestCase  # noqa
 from test_cake import CakeTestCase  # noqa
-from test_gui import GUITest  # noqa
 
+import platform
 import unittest
 import optparse
 import sys
+
+if platform.mac_ver() == ('', ('', '', ''), ''):
+    from test_gui import GUITest  # noqa
+
 
 if __name__ == '__main__':
     pyrocko.util.setup_logging('test_all', 'warning')
