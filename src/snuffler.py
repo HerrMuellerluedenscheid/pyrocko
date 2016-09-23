@@ -410,7 +410,7 @@ class SnufflerWindow(qg.QMainWindow):
 
     def __init__(
             self, pile, stations=None, events=None, markers=None, ntracks=12,
-            follow=None, controls=True, opengl=False):
+            follow=None, controls=True, opengl=False, show=True):
 
         qg.QMainWindow.__init__(self)
 
@@ -448,7 +448,8 @@ class SnufflerWindow(qg.QMainWindow):
 
         self.main_controls = self.pile_viewer.controls()
         self.add_panel('Main Controls', self.main_controls, visible=controls)
-        self.show()
+        if show:
+            self.show()
 
         self.get_view().setFocus(qc.Qt.OtherFocusReason)
 
