@@ -18,7 +18,7 @@
 </style>
 <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCH6UltC1GIHJS1Xoxg0Ju38RKgOaCDZ7c&sensor=false">
 </script>
-<script type="text/javascript" src="https://raw.githubusercontent.com/googlemaps/v3-utility-library/master/markerwithlabel/src/markerwithlabel.js"></script>
+<script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/v3-utility-library/master/markerwithlabel/src/markerwithlabel.js"></script>
 <script type="text/javascript" src="http://localhost:9998/loadxmldoc.js"></script>
 <script>
 	/*
@@ -289,7 +289,8 @@
 
               var latlngbounds = new google.maps.LatLngBounds();
               map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
-              var platekml='https://raw.githubusercontent.com/emolch/contrib-snufflings/master/map/plates.kml';
+              var platekml='http://127.0.0.1:9998/plate_boundaries_usgs.kml';
+              // var platekml='http://127.0.0.1:9998/plates.kml';
               kmloptions = {suppressInfoWindows: false,
                 preserveViewport:true,
                 map: map,
@@ -366,7 +367,6 @@
             checked="checked" /> &nbsp;&nbsp;
             lat lon: <span id="latlong"></span>
             <input type='button' id='add_ruler' onclick='addruler();' value='add a ruler'/>
-
           </form>
 
 

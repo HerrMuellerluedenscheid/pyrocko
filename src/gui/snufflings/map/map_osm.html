@@ -183,9 +183,18 @@
 		}
 
 		function init() {
+
+			var aerial = new OpenLayers.Layer.Bing({
+				key: apiKey,
+				type: "Aerial",
+				isBaseLayer: true,
+				opacity: 1.
+			});
+			aerial.setVisibility(false);
+
 			var plate_boundary_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);	
 			plate_boundary_style.strokeWidth = 4; 
-			plate_boundary_style.strokeColor = "#827773";
+			plate_boundary_style.strokeColor = "#f49842";
 			plate_boundary_style.strokeOpacity = 1;
 
 			plate_boundaries = new OpenLayers.Layer.Vector("Plate Boundaries", {
@@ -196,19 +205,25 @@
 					format: new OpenLayers.Format.KML({
 						extractStyles: false, 
 						extractAttributes: false,
-						maxDepth: 2
+						maxDepth: 1
 					})
 				})
 			})
 			plate_boundaries.setVisibility(false);
 
-			var aerial = new OpenLayers.Layer.Bing({
-				key: apiKey,
-				type: "Aerial",
-				isBaseLayer: false,
-				opacity: 0.6
-			});
-			aerial.setVisibility(false);
+			// plate_boundaries_usgs = new OpenLayers.Layer.Vector("Plate Boundaries (USGS)", {
+			// 	strategies: [new OpenLayers.Strategy.Fixed()],
+			// 	style: plate_boundary_style,
+			// 	protocol: new OpenLayers.Protocol.HTTP({
+			// 		url: "plate_boundaries_usgs.kml",
+			// 		format: new OpenLayers.Format.KML({
+			// 			extractStyles: false, 
+			// 			extractAttributes: false,
+			// 			maxDepth: 1
+			// 		})
+			// 	})
+			// })
+			// plate_boundaries_usgs.setVisibility(true);
 
 			var mouse_control = new OpenLayers.Control.MousePosition({
 				prefix: 'Coordinates: ',
@@ -217,17 +232,18 @@
 				emptyString: 'Mouse not over map'
 			});
 
-
 			map = new OpenLayers.Map({
 				div: "map",
 				allOverlays: true,
 				layers: [
-				new OpenLayers.Layer.OSM(), 
-				plate_boundaries,
-				aerial
+					new OpenLayers.Layer.OSM(), 
+					aerial,
+					plate_boundaries,
+					// plate_boundaries_usgs,
 				],
 				controls: [
-				new OpenLayers.Control.LayerSwitcher({roundedCornerColor: "#999999"}),
+				new OpenLayers.Control.LayerSwitcher(
+						{roundedCornerColor: "#999999"}),
 				new OpenLayers.Control.Attribution(),
 				new OpenLayers.Control.PanZoomBar(),
 				new OpenLayers.Control.Navigation(),

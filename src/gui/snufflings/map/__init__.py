@@ -78,6 +78,12 @@ class RootedHTTPServer(HTTPServer):
 
 class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
 
+    def log_message(self, format, *args):
+        logger.debug("%s - - [%s] %s\n" %
+                        (self.client_address[0],
+                         self.log_date_time_string(),
+                             format%args))
+
     def translate_path(self, path):
         path = posixpath.normpath(unquote(path))
         words = path.split('/')
@@ -278,7 +284,12 @@ python $HOME/.snufflings/map/snuffling.py --stations=stations.pf
             url = 'http://localhost:' + str(self.port) + '/%s' % map_fn
 
             snuffling_dir = op.dirname(op.abspath(__file__))
-            for entry in ['loadxmldoc.js', 'plates.kml', map_fn]:
+            for entry in [
+                'loadxmldoc.js', 'plates.kml',
+                'plate_boundaries_usgs.kml', 'arrow.png',
+                'usgs.jpg', 'PlateMotionLegend.png',
+                 map_fn]:
+                # 'loadxmldoc.js', 'plates.kml', map_fn]:
                 shutil.copy(os.path.join(snuffling_dir, entry),
                             os.path.join(tempdir, entry))
 

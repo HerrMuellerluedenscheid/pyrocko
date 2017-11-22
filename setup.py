@@ -723,7 +723,8 @@ setup(
                    'data/colortables/*.cpt',
                    'data/tectonics/*.txt',
                    'data/fomosto_report/gfreport.*',
-                   'gui/snufflings/map/*ml',
+                   'gui/snufflings/map/*.kml',
                    'gui/snufflings/map/*.js',
+                   'gui/snufflings/map/usgs.jpg',
                    ] + get_readme_paths()}
 )
