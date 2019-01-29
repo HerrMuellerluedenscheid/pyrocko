@@ -6,6 +6,7 @@ import os.path as op
 
 from pyrocko.guts import List
 from pyrocko.plot import gmtpy
+from pyrocko.gui.marker import PhaseMarker
 from pyrocko import pile, util, model, config
 from pyrocko.dataset import topo
 
@@ -86,6 +87,11 @@ class ScenarioGenerator(LocationGenerator):
             self._engine, self.get_sources(), *a, **kw)
 
     @collect
+    def get_onsets(self, tmin=None, tmax=None):
+        return lambda gen, *a, **kw: gen.get_onsets(
+            self._engine, self.get_sources(), *a, **kw)
+
+    @collect
     def get_insar_scenes(self, tmin=None, tmax=None):
         return lambda gen, *a, **kw: gen.get_insar_scenes(
             self._engine, self.get_sources(), *a, **kw)
@@ -107,6 +113,8 @@ class ScenarioGenerator(LocationGenerator):
         model.station.dump_kml(
             self.get_stations(), op.join(meta_dir, 'stations.kml'))
 
+        PhaseMarker.save_markers(
+            self.get_onsets(), op.join(path, 'markers.txt'))
         dump_readme(path)
 
         def dump_data(gen, *a, **kw):
