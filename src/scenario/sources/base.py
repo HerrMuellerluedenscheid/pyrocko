@@ -1,6 +1,6 @@
 import os.path as op
 
-from pyrocko import util
+from pyrocko import util, model
 from pyrocko.guts import Timestamp, Float, Int, Bool
 
 from ..base import LocationGenerator
@@ -40,12 +40,17 @@ class SourceGenerator(LocationGenerator):
             for src in self.get_sources():
                 f.write(src.dump())
 
-        fn_events = op.join(path, 'events.txt')
+        fn_events_yml = op.join(path, 'events.yml')
         with open(fn_events, 'w') as f:
             for isrc, src in enumerate(self.get_sources()):
                 f.write(src.pyrocko_event().dump())
 
-        return [fn_events, fn_sources]
+        fn_events_pf = op.join(path, 'events.pf')
+        model.dump_events(
+            fn_events_pf,
+            [s.pyrocko_event() for s in self.get_sources()])
+
+        return [fn_events, fn_sources, fn_events_pf]
 
     def add_map_artists(self, automap):
         pass
