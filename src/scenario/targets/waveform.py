@@ -303,7 +303,6 @@ class WaveformGenerator(TargetGenerator):
         nwin = int(round((tmax - tmin) / tinc))
         response = engine.process(sources, self.get_targets())
         deltats = self.get_codes_to_deltat(engine, sources)
-
         for iwin in progressbar.progressbar(range(nwin)):
             tmin_win = max(tmin, tmin + iwin*tinc)
             tmax_win = min(tmax, tmin + (iwin+1)*tinc)
