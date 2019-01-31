@@ -5,7 +5,7 @@ import logging
 import numpy as num
 
 from os import path as op
-from functools import reduce
+from functools import reduce, lru_cache
 
 from pyrocko.guts import StringChoice, Float, List
 from pyrocko.gui.marker import PhaseMarker
@@ -178,15 +178,11 @@ class WaveformGenerator(TargetGenerator):
         tinc = int(round(tinc / deltat)) * deltat
         return tinc
 
-    def get_waveforms(self, engine, sources, tmin=None, tmax=None):
-        trs = {}
-
-        tmin_all, tmax_all = self.get_time_range(sources)
-        tmin = tmin if tmin is not None else tmin_all
-        tmax = tmax if tmax is not None else tmax_all
+    def get_waveforms(self, engine, response, deltats, tmin=None, tmax=None):
         tts = util.time_to_str
 
-        for nslc, deltat in self.get_codes_to_deltat(engine, sources).items():
+        trs = {}
+        for nslc, deltat in deltats.items():
             tr_tmin = int(round(tmin / deltat)) * deltat
             tr_tmax = (int(round(tmax / deltat))-1) * deltat
             nsamples = int(round((tr_tmax - tr_tmin) / deltat)) + 1
@@ -205,24 +201,29 @@ class WaveformGenerator(TargetGenerator):
                      % (tts(tmin, format='%Y-%m-%d_%H-%M-%S'),
                         tts(tmax, format='%Y-%m-%d_%H-%M-%S')))
 
-        targets = self.get_targets()
-        for source in sources:
-            resp = engine.process(source, targets)
+        # @lru_cache(maxsize=10000)
+        # def process_engine(source, targets):
+        #     return engine.process(source, list(targets))
 
-            for _, target, res in resp.iter_results(get='results'):
-                if isinstance(res, gf.SeismosizerError):
-                    logger.warning('Station %s is Out of bounds!'
-                                   % '.'.join(target.codes))
-                    continue
-                if not isinstance(res, gf.meta.Result):
-                    continue
-                tr = res.trace.pyrocko_trace()
+        # targets = self.get_targets()
+        for source, target, tr in response.iter_results():
+            resp = self.get_transfer_function(target.codes)
+            if resp:
+                tr = tr.transfer(transfer_function=resp)
 
-                resp = self.get_transfer_function(target.codes)
-                if resp:
-                    tr = tr.transfer(transfer_function=resp)
+            trs[target.codes].add(tr)
+        # for source in sources:
+        #     resp = engine.process(source, targets)
 
-                trs[target.codes].add(tr)
+        #     for _, target, res in resp.iter_results(get='results'):
+        #         if isinstance(res, gf.SeismosizerError):
+        #             logger.warning('Station %s is Out of bounds!'
+        #                            % '.'.join(target.codes))
+        #             continue
+        #         if not isinstance(res, gf.meta.Result):
+        #             continue
+        #         tr = res.trace.pyrocko_trace()
+
 
         return list(trs.values())
 
@@ -300,6 +301,9 @@ class WaveformGenerator(TargetGenerator):
         tmax = math.ceil(tmax / tinc) * tinc
 
         nwin = int(round((tmax - tmin) / tinc))
+        response = engine.process(sources, self.get_targets())
+        deltats = self.get_codes_to_deltat(engine, sources)
+
         for iwin in progressbar.progressbar(range(nwin)):
             tmin_win = max(tmin, tmin + iwin*tinc)
             tmax_win = min(tmax, tmin + (iwin+1)*tinc)
@@ -307,7 +311,8 @@ class WaveformGenerator(TargetGenerator):
             if tmax_win <= tmin_win:
                 continue
 
-            trs = self.get_waveforms(engine, sources, tmin_win, tmax_win)
+            trs = self.get_waveforms(
+                engine, response, deltats, tmin_win, tmax_win)
 
             try:
                 io.save(

@@ -2618,6 +2618,9 @@ class OutOfBoundsContext(Object):
     distance = Float.T()
     components = List.T(String.T())
 
+    def __str__(self):
+        'XXXXXXX'
+
 
 def process_dynamic_timeseries(work, psources, ptargets, engine, nthreads=0):
     dsource_cache = {}
@@ -2658,8 +2661,8 @@ def process_dynamic_timeseries(work, psources, ptargets, engine, nthreads=0):
             for iseis, seismogram in enumerate(base_seismograms):
                 for tr in seismogram.values():
                     if tr.err != store.SeismosizerErrorEnum.SUCCESS:
-                        e = Exception()
-                        e.context = OutOfBoundsContext(
+                        e = Exception('Seismosizer failed')
+                        e.context=OutOfBoundsContext(
                             source=source,
                             target=store_targets[iseis],
                             distance=source.distance_to(store_targets[iseis]),
