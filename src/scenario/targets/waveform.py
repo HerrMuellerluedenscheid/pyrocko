@@ -15,6 +15,8 @@ from pyrocko.io_common import FileSaveError
 from .station import StationGenerator, RandomStationGenerator
 from .base import TargetGenerator, NoiseGenerator
 
+progressbar = util.progressbar_module()
+
 DEFAULT_STORE_ID = 'global_2s'
 
 logger = logging.getLogger('pyrocko.scenario.targets.waveform')
@@ -298,8 +300,7 @@ class WaveformGenerator(TargetGenerator):
         tmax = math.ceil(tmax / tinc) * tinc
 
         nwin = int(round((tmax - tmin) / tinc))
-
-        for iwin in range(nwin):
+        for iwin in progressbar.progressbar(range(nwin)):
             tmin_win = max(tmin, tmin + iwin*tinc)
             tmax_win = min(tmax, tmin + (iwin+1)*tinc)
 
