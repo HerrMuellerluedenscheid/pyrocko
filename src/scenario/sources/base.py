@@ -47,10 +47,10 @@ class SourceGenerator(LocationGenerator):
 
         fn_events_pf = op.join(path, 'events.pf')
         model.dump_events(
-            fn_events_pf,
-            [s.pyrocko_event() for s in self.get_sources()])
+            [s.pyrocko_event() for s in self.get_sources()],
+            fn_events_pf)
 
-        return [fn_events, fn_sources, fn_events_pf]
+        return [fn_events_yml, fn_sources, fn_events_pf]
 
     def add_map_artists(self, automap):
         pass
