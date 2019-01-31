@@ -41,7 +41,7 @@ class SourceGenerator(LocationGenerator):
                 f.write(src.dump())
 
         fn_events_yml = op.join(path, 'events.yml')
-        with open(fn_events, 'w') as f:
+        with open(fn_events_yml, 'w') as f:
             for isrc, src in enumerate(self.get_sources()):
                 f.write(src.pyrocko_event().dump())
 
